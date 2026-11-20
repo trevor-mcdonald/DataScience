@@ -1,7 +1,7 @@
 ---
 title: "Regression Case Study: PSAAP II"
-author: "(Your name here)"
-date: 2020-
+author: "Trevor McDonald"
+date: 2026-11-19
 output:
   github_document:
     toc: true
@@ -72,11 +72,19 @@ Figure 1. An example simulation, frozen at a specific point in time. An initial 
 
 ```{r q1-task}
 ## TODO: Perform your initial checks
+df_psaap %>% glimpse()
+df_psaap
+summary(df_psaap)
+df_psaap %>% count(idx)
+df_psaap %>% count(x)
 ```
 
 **Observations**:
 
-- (Take notes here!)
+- There are 35 indexes, and 4 n values at each one
+- There are 22 columns
+- There are 4 different x values, one for each index.
+- Each value and index has a lot of input and output variables, it's really hard to make claims about trends on an initial check.
 
 The important variables in this dataset are:
 
@@ -113,6 +121,10 @@ The primary output of interest is `T_norm = (avg_T - T_f) / T_f`, the normalized
 ## TODO: Visualize the data in df_psaap with T_norm against x;
 ##       design your visual to handle the multiple simulations,
 ##       each identified by different values of idx
+df_psaap %>%
+  ggplot(aes(T_norm, x, group = idx)) +
+  geom_line() +
+  geom_point()
 ```
 
 ## Modeling
@@ -149,18 +161,26 @@ fit_nonphysical <-
 
 ## TODO: Compute a measure of accuracy for each fit above;
 ##       compare their relative performance
+mse(fit_baseline, df_validate)
+rsquare(fit_baseline, df_validate)
+
+mse(fit_cheat, df_validate)
+rsquare(fit_cheat, df_validate)
+
+mse(fit_nonphysical, df_validate)
+rsquare(fit_nonphysical, df_validate)
 ```
 
 **Observations**:
 
 - Which model is *most accurate*? Which is *least accurate*?
-  - (Your response here)
+  - cheat is the most accurate and non_physical is the least accurate
 - What *Category* of variable is `avg_T`? Why is it such an effective predictor?
-  - (Your response here)
+  - avg_T is an output variable meaning it's something that comes as the result of an expirement not a variable set before the expiriment. It is such an effective predictor because it is useed to calculate T_norm
 - Would we have access to `avg_T` if we were trying to predict a *new* value of `T_norm`? Is `avg_T` a valid predictor?
-  - (Your response here)
+  - No it is not a valid predictor because we wouldn't be able to access it if we were trying to predict a new value of T_norm. To find the value of T_norm, we use the value of avg_T.
 - What *Category* of variable is `idx`? Does it have any physical meaning?
-  - (Your response here)
+  - idx is a metadata variable. It does not have any physical meaning.
 
 ### __q4__ Interpret this model
 
@@ -174,22 +194,29 @@ fit_q4 <-
   df_train %>% 
   lm(formula = T_norm ~ . - idx - avg_q - avg_T - rms_T)
 ## TODO: Use some of the functions we learned in e-model01 through e-model03
+df_psaap %>%
+  summarize(sd_x = sd(x)) %>%
+  pull(sd_x)
+df_psaap %>%
+  summarize(sd_T_f = sd(T_f)) %>%
+  pull(sd_T_f)
+summary(fit_q4)
 ```
 
 **Observations**:
 
 - Which columns are excluded in the model formula above? What categories do these belong to? Why are these important quantities to leave out of the model?
-  - (Your response here)
+  - The columns excluded are idx, avg_q, avg_T, and rms_T. These are excluded because idx is a metadata variable with no physical meaning and the rest are output variables.
 - Which inputs are *statistically significant*, according to the model?
-  - (Your response here)
+  - According to the model, all the inputs are statistically significant because it uses all of them.
 - What is the regression coefficient for `x`? What about the regression coefficient for `T_f`?
-  - (Your response here)
+  - The regression coefficient for x is 1.018. The regression coefficient for T_f is  -.0003791
 - What is the standard deviation of `x` in `df_psaap`? What about the standard deviation of `T_f`? 
-  - (Your response here)
+  - The standard deviation of `x` is 0.2805121. The standard deviation of `T_f` is 38.94204
 - How do these standard deviations relate to the regression coefficients for `x` and `T_f`?
-  - (Your response here)
+  - Standard deviations are used to find the standard error. A standard error is how far off a given point is from the linear regression that is defined in terms of the regression coefficient.
 - Note that literally *all* of the inputs above have *some* effect on the output `T_norm`; so they are all "significant" in that sense. What does this tell us about the limitations of statistical significance for interpreting regression coefficients?
-  - (Your response here)
+  - 
 
 ## Contrasting CI and PI
 
@@ -297,11 +324,11 @@ bind_rows(
 **Observations**:
 
 - Which model tends to be more accurate? How can you tell from this predicted-vs-actual plot?
-  - (Your response here)
+  - The model q4, the one with all the variables, seems to be more accurate than the model that only looks at the x value. This is because the prediction intervals are a lot smaller compared to the one with only x. The one with only x, notably only has 4 different prediction intervals. This makes sense because the only value it cares about only has four different reference points (.25, .5, .75, 1)
 - Which model tends to be *more confident* in its predictions? Put differently, which model has *narrower prediction intervals*?
-  - (Your response here)
+  - The model that takes into account all the variables.
 - How many predictors does the `fit_simple` model need in order to make a prediction? What about your model `fit_q4`?
-  - (Your response here)
+  - fit_simple uses no predictors. It only takes the spatial data and relies on no other input data. The model fit_q4 relies on all of the predictors in the dataset. 
 
 Based on these results, you might be tempted to always throw every reasonable variable into the model. For some cases, that might be the best choice. However, some variables might be *outside our control*; for example, variables involving human behavior cannot be fully under our control. Other variables may be *too difficult to measure*; for example, it is *in theory* possible to predict the strength of a component by having detailed knowledge of its microstructure. However, it is *patently infeasible* to do a detailed study of *every single component* that gets used in an airplane.
 
@@ -336,22 +363,54 @@ pr_level <- 0.8
 #        use the validation data to check your uncertainty estimates, and 
 #        make a recommendation on a *dependable range* of values for T_norm
 #        at the point `df_design`
-fit_q6 <- NA
+fit_q6 <- 
+  df_train %>%
+  lm(
+    data = ., 
+    formula = T_norm ~ x + L + W + U_0
+    )
+
+df_intervals <-
+  df_validate %>%
+  add_uncertainties(fit_q6, interval = "prediction", prefix = "pi", level = pr_level)
+
+df_intervals %>%
+  ggplot(aes(T_norm, pi_fit)) +
+  geom_abline(slope = 1, intercept = 0, color = "grey80", size = 2) +
+  geom_errorbar(
+    aes(ymin = pi_lwr, ymax = pi_upr),
+    width = 0
+  ) +
+  geom_point() +
+
+  theme_minimal() +
+  labs(
+    title = "Predicted vs Actual",
+    x = "Actual T_norm",
+    y = "Predicted T_norm"
+  )
+
+df_design %>%
+  add_uncertainties(fit_q6, interval = "prediction", prefix = "pi", level = pr_level)
+
+df_intervals %>%
+  summarize(below = mean(T_norm < pi_lwr), above = mean(T_norm > pi_upr))
 
 ```
+
 
 **Recommendation**:
 
 - How much do you trust your model? Why?
-  - (Your response here)
+  - I feel like I trust it. The validation data predictions covered ~93% of values instead of teh expected 80% in the range. Something might be going on there.
 - What kind of interval---confidence or prediction---would you use for this task, and why?
-  - (Your response here)
+  - I used a prediction interval, because the design team wanted to know a dependable range of values for a single proposed design.
 - What fraction of validation cases lie within the intervals you predict? (NB. Make sure to calculate your intervals *based on the validation data*; don't just use one single interval!) How does this compare with `pr_level`?
-  - (Your response here)
+  - 93% of validation cases lie within the intervals. This is much higher than the 80% expected for the pr_level. Also, no points fall above the interval, only below.
 - What interval for `T_norm` would you recommend the design team to plan around?
-  - (Your response here)
+  - I'd use a T_norm between 1.45 and 2.30. The values that do miss the prediction interval fall below though, so if it does miss expect it to be lower instead of higher.
 - Are there any other recommendations you would provide?
-  - (Your response here)
+  - Run an actual simulation to confirm instead of relying just on this data.
 
 *Bonus*: One way you could take this analysis further is to recommend which other variables the design team should tightly control. You could do this by fixing values in `df_design` and adding them to the model. An exercise you could carry out would be to systematically test the variables to see which ones the design team should more tightly control.
 
