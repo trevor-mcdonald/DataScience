@@ -66,7 +66,8 @@ Following Step 1, we need to assign batch identifiers to group the data.
 #        consecutive groups of 4 rows have the same id
 df_q1 <-
   df_data %>%
-  mutate(id = row_number())
+  mutate(
+    id = (row_number() - 1) %/% 4)
 df_q1
 ```
 
@@ -103,9 +104,16 @@ Next, we'll use our knowledge about confidence intervals and the CLT to set the 
 ```{r q2-task}
 ## TODO: Edit the code below to create an `id` column where
 #        consecutive groups of 4 rows have the same id
-X_grand <- NA_real_
-X_g4_lo <- NA_real_
-X_g4_up <- NA_real_
+X_grand <- 
+  df_data %>%
+  summarize(X_mean = mean(X)) %>%
+  pull(X_mean)
+X_sd <-
+  df_data %>%
+  summarize(X_sd = sd(X)) %>%
+  pull(X_sd)
+X_g4_lo <- X_grand - 3 * X_sd/sqrt(4)
+X_g4_up <- X_grand + 3 * X_sd/sqrt(4)
 X_g4_lo
 X_grand
 X_g4_up
@@ -146,11 +154,11 @@ df_q1 %>%
 
 **Observations**:
 - How many points would you *expect* to lie outside the control limits, assume the data were completely random?
-  - (Your response here)
+  - about 0.3% of the points. 0.3% of 250 is .75, meaning more often then not there will be one point normally.
 - How many points lie *outside* the control limits? Is this about as many as you would expect if the data were random?
-  - (Your response here)
+  - 1
 - Do you see any coherent patterns in the points? Does this make sense?
-  - (Your response here)
+  - There don't seem to be any coherent patterns, it just seems to be centered on the grand mean.
 
 ## Control Chart: Application
 
@@ -194,11 +202,10 @@ df_mass %>%
 
 **Observations**:
 - These measurement were carried out by some of the most experienced measurement scientists in the world. Are professional measurements *exactly* repeatable?
-  - (Your response here)
+  - No.
 - What patterns do you notice?
-  - (Your observation here)
-  - (Your observation here)
-  - ...
+  - There seems to be large variation before the 80s and then large variation again after 85.
+  - Data seems to get higher after 85.
 
 Next, prepare the data for a control chart of the NIST data.
 
@@ -210,16 +217,24 @@ n_group <- 10
 ## Batched data; edit this code
 df_q4 <-
   df_mass %>%
-  group_by(date) %>%
+  mutate(id = (row_number() - 1)%/%n_group) %>%
+  group_by(id) %>%
   summarize(
     Y_mean = mean(Y),
     date = min(date)
   )
+df_q4
 ## Control limits and grand mean; complete this code
-Y_mean <- NA_real_
-Y_sd <- NA_real_
-Y_g_lo <- NA_real_
-Y_g_up <- NA_real_
+Y_mean <-
+  df_mass %>%
+  summarize(Y_mean = mean(Y)) %>%
+  pull(Y_mean)
+Y_sd <-
+  df_mass %>%
+  summarize(Y_sd = sd(Y)) %>%
+  pull(Y_sd)
+Y_g_lo <- Y_mean - 3 * Y_sd/sqrt(n_group)
+Y_g_up <- Y_mean + 3 * Y_sd/sqrt(n_group)
 Y_g_lo
 Y_mean
 Y_g_up
@@ -257,9 +272,10 @@ df_q4 %>%
 
 **Observations**:
 - Copy the patterns you noticed above down here; compare those against this new control chart.
-  - (Your responses here)
+  - The means of the batches clearly show some variance. They seem to trend upwards until the 80s until they fall back down. Then they begin to start rising again and seem to continue up 
 - What additional observations can you make, based on the control chart?
-  - (Your response here)
+  - There are four points outside of the control limits.
+  - There is a big gap between 1980 and 1982 where there is no data.
 
 Remember that a control chart is only a *detection* tool; to say more, you would need to go investigate the data collection process.
 

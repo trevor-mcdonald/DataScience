@@ -92,10 +92,66 @@ The Islands allows you to ask islanders to complete tasks. If you just take meas
 ### __q2__ EDA
 
 Conduct an EDA on your data. Add as many code chunks as you need. Ensure your EDA gives enough context of the data for us to understand what comes next in this report.
+```{r}
+data = read_csv("./data/data.csv")
+
+data
+
+data <- data %>%
+  group_by(Major) %>%
+  pivot_longer(
+    names_to = "Attention Test Number",
+    values_to = "Number Missed",
+    # cols = c("Number Missed (Attention Test //*",)
+    cols = contains("Number Missed")
+  ) %>%
+  mutate(
+    `Attention Test Number` = str_extract(`Attention Test Number`, "\\d") %>%
+      as.integer()
+    
+  )
+
+mean_by_test <-
+  data %>%
+  group_by(`Attention Test Number`, Day, Group) %>%
+  summarize(
+    mean_missed = mean(`Number Missed`, na.rm = TRUE),
+  ) %>%
+  ungroup() %>%
+  mutate(
+    Test_no = (Day-1) *2 + `Attention Test Number`,
+  ) %>%
+  arrange(Group, Test_no)
+mean_by_test
+
+mean_by_test %>%
+  ggplot(aes(Test_no, `mean_missed`, color = Group)) +
+  geom_line() +
+  geom_point()
+```
+```{r -what}
+score_by_major <-
+  data %>%
+  group_by(Major) %>%
+  summarize(
+    mean_missed = mean(`Number Missed`, na.rm = TRUE),
+  ) %>%
+  ungroup() %>%
+  arrange(mean_missed)
+
+score_by_major %>%
+  mutate(
+    Major = fct_reorder(Major, mean_missed)
+  ) %>%
+  ggplot(aes(`mean_missed`, Major)) +
+  geom_col()
+```
 
 ### __q3__ Key Analyses
 
 Present the key analyses that support your questions / hypotheses. This could include summary statistics (e.g., a proportion of Islanders), grouped summary statistics (e.g., a proportion for group A, and for group B), or visualizations (e.g., a histogram). This section should be short, and every analysis should directly relate to q4.
+
+When initially creating our experiment, we expected that colleges in the Islands to have a similar population to Olin where almost all of the students are in the 17-22 age range. However, the Islands has a much more diverse age population at Arcadia University. Since we hadn't initially planned on tracking this, we wanted to see if age was affecting out data at all. Fortunately, the plot shows that age doesn't play a role in how well students were doing on the attention tests. As shown by the graph, different groups display different trends when it comes to age. The listening group shows that participants perform worse as they get older, but the playing piano group shows that participants perform better as they get older. This graph also does show that playing music increases attention. The line we fitted to the piano group is below the line we fitted to the control group.
 
 ### __q4__ Answers
 

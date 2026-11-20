@@ -256,7 +256,23 @@ pr_threshold <- 0.5
 ## TODO: compute true positive rate (TPR) and false positive rate (FPR) with the
 ##       given pr_threshold. Assign these to the columns TPR and FPR.
 df_q1 <-
-  df_basic
+  df_basic %>%
+  mutate(
+    true_positive = (pr_heart_disease > pr_threshold) & heart_disease,
+    false_positive = (pr_heart_disease > pr_threshold) & !heart_disease,
+    false_negative = (pr_heart_disease <= pr_threshold) & heart_disease,
+    true_negative = (pr_heart_disease <= pr_threshold) & !heart_disease
+  ) %>%
+  summarize(
+    TP = sum(true_positive),
+    FP = sum(false_positive),
+    FN = sum(false_negative),
+    TN = sum(true_negative)
+  ) %>%
+  mutate(
+    TPR = TP / (TP + FN),
+    FPR = FP / (TN + FP)
+  )
 
 df_q1
 ```
@@ -319,6 +335,7 @@ df_basic %>%
 **Observations**:
 
 - Is this an effective or ineffective classifier? How do you know?
+  - No, everything hovers too close to the line of straight guessing.
 
 ## Practice Assessing Classifiers
 <!-- ------------------------- -->
@@ -361,7 +378,9 @@ df_cheating %>%
 **Observations**:
 
 - Is this an effective classifier?
+  - Yes! it hits the upper left corner! This means this is the best it can possibly get.
 - What explains this model's performance? Is this model valid for prediction?
+  - It's cheating. It literally takes every value that has heart disease and classifies it as heart disease, and it takes every value that doesn't have heart disease and classifies it as non-heart disease.
 
 Next you'll fit your own model and assess its performance.
 
@@ -371,9 +390,17 @@ Next you'll fit your own model and assess its performance.
 ## TODO: Fit your own logistic regression model on df_train, predict class
 ##       probabilities on df_validate.
 ##
-fit_q4 <- NA
+fit_q4 <- glm(
+  formula = heart_disease ~ age + chol + thalach + trestbps + cp,
+  data = df_train,
+  family = "binomial"
+)
 df_q4 <-
-  df_validate
+  df_validate %>%
+  add_predictions(fit_q4, var = "log_odds_ratio") %>%
+  arrange(log_odds_ratio) %>%
+  rowid_to_column(var = "order") %>%
+  mutate(pr_heart_disease = inv.logit(log_odds_ratio))
 
 ## Here's another model for comparison
 fit_baseline <- glm(
@@ -418,7 +445,9 @@ bind_rows(
 **Observations**:
 
 - Is your model more or less accurate at classifying than `fit_baseline`? How do you know?
+  - More because it's closer to the top left corner.
 - As you sweep from low to high values of FPR, what happens to the values of TPR? What "tradeoff" do you see in the two quantities?
+  The more true positives that are included, normally the more false positives there are as well.
 
 ## Selecting a Threshold
 
@@ -442,10 +471,20 @@ df_thresholds <-
   ## End: Shortcut code for computing an ROC
 
 ## TODO: Pick a threshold using df_thresholds above
+df_thresholds %>%
+  filter(true_positive_rate >= .95) %>%
+  filter(false_positive_rate == min(false_positive_rate))
+
+pr_threshold <- 0.1312326
+tpr_achieved <- 0.9722222
+fpr_achieved <- 0.8196721
+
 
 ## NOTE: No need to edit; use this visual to help your decision
 df_thresholds %>%
   ggplot(aes(true_positive_rate, pr_heart_disease)) +
+  geom_vline(xintercept = tpr_achieved, linetype = 2) +
+  geom_hline(yintercept = pr_threshold, linetype = 2) +
   geom_step() +
   labs(
     x = "True Positive Rate",
@@ -456,8 +495,11 @@ df_thresholds %>%
 **Observations**:
 
 - What is a reasonable value for TPR, and why did you pick that value?
+  - I chose 0.95 to catch most people with the disease
 - What values of `pr_threshold` meet or exceed that TPR?
+  - Values of 0.1312326 or more
 - What specific value of `pr_threshold` do you pick, and why?
+  - I kept it at the same pr_threshold because I don't want to go any lower, but I want to minimize false positives. There are still a lot though.
 
 <!-- include-exit-ticket -->
 # Exit Ticket

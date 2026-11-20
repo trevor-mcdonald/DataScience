@@ -79,6 +79,29 @@ url_custom_sheet <- "https://docs.google.com/spreadsheets/d/1PwxAu5T21eQC-Gqnm8O
 
 df_custom_sheet <- read_sheet(url_custom_sheet)
 df_custom_sheet %>% glimpse()
+df_custom_sheet
+```
+```{r}
+df_custom_sheet %>%
+  ggplot(aes(`Would you like to visit the Carroll Center to tour the next couple of weeks?`)) +
+  geom_bar()
+
+df_custom_sheet %>%
+  rename(meet_with = `What kind of people would you like to meet with`) %>%
+  separate_longer_delim(meet_with, delim = ", ") %>%
+  mutate(meet_with = str_trim(meet_with)) %>%
+  ggplot(aes(`meet_with`)) +
+  geom_bar() +
+  coord_flip()
+
+df_custom_sheet %>%
+  rename(volunteer = `Would you like to volunteer at all at the Carroll Center this year?`) %>%
+  separate_longer_delim(volunteer, delim = ", ") %>%
+  mutate(volunteer = str_trim(volunteer)) %>%
+  filter(str_length(volunteer) <= 50) %>%
+  ggplot(aes(`volunteer`)) +
+  geom_bar() +
+  coord_flip()
 ```
 
 Now as results from your survey come in, you can simply re-run this notebook to grab the most recent version of your data for local analysis.
