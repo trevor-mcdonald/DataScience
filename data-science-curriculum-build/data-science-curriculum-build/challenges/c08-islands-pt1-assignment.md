@@ -130,11 +130,18 @@ you still need to count, because your numbers *will* be different!
   - 0.32% are unoccupied
 - Are there any sources of *real* uncertainty in the percent occupied
   you calculated?
-  - There is no real uncertainty because we have the entire population,
-    not a sample.
+  - This data was taken last year, and since the islanders simulate a
+    real population, the islanders act as real people. They give birth,
+    die, and can move to different parts of the Islands.
 - Are there any sources of *erroneous* uncertainty in the percent
   occupied you calculated?
   - I could’ve counted wrong
+
+**Fixes** - Before, I had stated that there were no sources of real
+uncertainty. This was because I had made the mistake of treating the
+data Zach collected like data I had just taken. However, since the data
+was taken 10 months ago, there would be uncertainty in the numbers
+because those numbers would change based on the factors I listed.
 
 Zach looked at the first 25 homes in Helvig and recorded the `age` and
 `name` of every person in those homes. These people are provided in
@@ -251,9 +258,18 @@ print("Very good!")
 - Is this sample representative of *all* houses in Helvig? Why or why
   not?
   - No, taking the first 25 observations is not the best way to do it as
-    it is not representative of the population. This is also a
-    relatively small sample when compared to the entire population (25
-    houses out of 536 houses for Zach’s simulation).
+    it is not representative of the population.
+  - This is because the first 25 houses of data might be in a certain
+    neighborhood that has certain traits. In relation to the name, the
+    first 25 houses might include several people with the same last name
+    because families might live close together. For example, the parents
+    live in one house, and then their children and their families live
+    in the houses directly next to them.
+  - This is also a relatively small sample when compared to the entire
+    population (25 houses out of 536 houses for Zach’s simulation).
+
+**Fixes** - Forgot to include an explanation for why the sample isn’t
+representative of all hosues in Helvig. It is now included :)
 
 In the exercises, we talked about the importance of random sampling. In
 the previous challenge, we were able to *simulate* a random sample by
@@ -600,8 +616,8 @@ df_interval_bootstrap
 - What is highest possible prevalence for your chosen name, based on the
   confidence interval you constructed?
   - The 95% confidence interval given gives the highest possible
-    prevalence of the chosen name to be approximately 21.5% of Helvig
-    residence. That’s over 1 in every 5 people.
+    prevalence of the chosen name to be 20% of Helvig residence. That’s
+    1 in every 5 people.
 - Note that we used the *random* sample with the bootstrap procedure in
   this task. Could we use the bootstrap to make a confidence interval
   using the sequential sample (`df_sample_seq`) that would be
@@ -613,6 +629,12 @@ df_interval_bootstrap
     They would conclude that 100% of West Hall residents are taking
     desnat, qea1, and modsim. Without good random sampling, you end up
     with biased data that is not representative of the population.
+
+**Fixes** - I had previously said the highest possible prevalence for a
+name to be 21.5%. Going to be honest, it’s been awhile since I did this
+assignment and I have no idea where the 21.5% comes from. The highest
+possible prevalence should be the upper bound which is .2. My answer now
+reflects that.
 
 ### **q9** Discover possible measurements
 

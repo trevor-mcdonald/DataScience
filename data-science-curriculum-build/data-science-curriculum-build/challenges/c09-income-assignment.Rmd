@@ -299,9 +299,14 @@ df_data %>%
 **Observations**:
 
 - What *overall* trend do you see between `SE` and population? Why might this trend exist?
-  - The lower the standard error, the higher the population. This makes sense because standard error is defined in terms of population. The standard error = sigma/sqrt(n)
+  - The lower the standard error, the larger the population. This makes sense because standard error of the sample mean is defined in terms of sample size. The standard error = sigma/sqrt(n), where sigma is the standard deviation of the population and n is the sample size. If the population standard deviation is unknown, the sample standard deviation can be used to approximate the standard error
 - What does this *overall* trend tell you about the relative ease of studying small vs large counties?
-  - Estimates for smaller counties will have a larger standard error and wider confidence intervals. Having less certainty here means its harder to make claims with higher confidence.
+  - Estimates for smaller counties will have a larger standard error and wider confidence intervals. This is because, due to their smaller population, they have a smaller sample size, making sigma/sqrt(n) larger. Having less certainty here means its harder to make claims with higher confidence.
+  
+**Fixes**
+- I had incorrectly stated that standard error depends on the population and not the sample size. I changed my explanation to make the connection that standard error depends on sample size.
+- I had explained that smaller countries have a larger standard error, but I didn't mention why. In my revision I mentioned that because the population is smaller, they'll generally have a smaller sample size to study which leads to their higher standard error. This explanation is added for both questions 7 & 8.
+
 
 # Going Further
 <!-- ----------------------------------------------------------------------- -->
@@ -374,7 +379,7 @@ Question:
 Observations:
   - Across all counties in the US, Asian households have the highest median income estimates followed by Native Hawaiian and Other Pacific Islander, White, American Indian and Alaska Native, and Black or African American households.
   - We are most confident in the estimate for White households as the normalized standard error for that falls much lower.
-  - American Indian and Alaska Native, and Native Hawaiian and Other Pacific Islander Households have a much higher normalized standard error. This suggests that there are fewer of them in the population making it harder to accurately determine the estimate median income for these households.
+  - American Indian and Alaska Native, and Native Hawaiian and Other Pacific Islander Households have a much higher normalized standard error. This suggests that there are fewer of them in the population making it harder to accurately determine the estimate median income for these households. Remember, smaller population means smaller sample size (n) which means the standard error will be larger: SE = sigma/sqrt(n)
   - For all households besides white households. We have Normalized Standard Error values of over 0.6. This means that on average the standard error is over 60% of the estimate itself. This is a huge value and not one I would trust.
   - With income, there might be a few really high values that skew the data. The second graph suggests that that is less likely to happen with the White household groups compared to the other household groups. This makes sense as the majority of the US population is White.
   - To answer the question, The median household income for different racial groups varies a lot. On average, Asian households have the highest median income and Black or African American households have the lowest median income. For a lot of our values however, we cannot be too confident in our estimates due to a high standard error. This is especially clear in the Native Hawaiian and Other Pacific Islander, and American Indian and Alaska Native households. Asian and Black or African American households also have a normalized standard error value in a lot of counties that make it hard to be confident in our median income estimates.
